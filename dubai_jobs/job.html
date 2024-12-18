@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- CSS inclus dans le même fichier -->
+    <style>
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        /* Header */
+        header {
+            background-color: #000;
+            color: white;
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        nav {
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .menu, nav .actions {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+
+        .logo img {
+            width: 50px;
+            height: auto;
+            display: block;
+        }
+
+        .join-btn {
+            background-color: #4078c0;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .join-btn:hover {
+            background-color: #305a91;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 100px 20px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .hero span {
+            color: #4078c0;
+        }
+
+        .hero p {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .search-bar {
+            margin-top: 30px;
+        }
+
+        .search-bar input {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .search-bar button {
+            padding: 10px 20px;
+            background-color: #4078c0;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .search-bar button:hover {
+            background-color: #305a91;
+        }
+
+         /* Job Item */
+        .job-item {
+            background-color: white;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .job-item h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .job-item p {
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .job-item a {
+            display: inline-block;
+            background-color: #4078c0;
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+       .job-item a:hover {
+             background-color: #305a91;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="C:\dubai_jobs\AKKM.webp" alt="AKKM Logo">
+            </div>
+            
+                <li><button class="join-btn">Join Us</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Section -->
+    <main>
+        <div class="hero">
+            <h1>Building a better world, <br><span>together</span></h1>
+            <p>Choose a job you love, and you will never have to work a day in your life</p>
+            <div class="search-bar">
+                <input type="text" placeholder="Search for jobs by keyword">
+                <button>Search</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript inclus dans le même fichier -->
+    <script>
+       
+        document.addEventListener("DOMContentLoaded", () => {
+            const searchButton = document.querySelector(".search-bar button");
+            const searchInput = document.querySelector(".search-bar input");
+            const mainElement = document.querySelector("main"); // Getting the main element to display the results
+
+            searchButton.addEventListener("click", async () => {
+                const keyword = searchInput.value.trim();
+                if (keyword) {
+                     try {
+                       // Remove any previous results
+                      const oldResultsDiv = document.getElementById("job-results")
+                         if (oldResultsDiv){
+                            oldResultsDiv.remove()
+                         }
+
+                     // Show Loading Message
+                     const loadingMessage = document.createElement("p")
+                     loadingMessage.textContent="Loading..."
+                      mainElement.appendChild(loadingMessage)
+
+
+                        const response = await fetch(`http://127.0.0.1:8000/jobs/search?keyword=${keyword}`);
+                         if (!response.ok) {
+                             const errorText = await response.text();
+                            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                          }
+
+
+                        const jobs = await response.json();
+
+                     //Remove loading message 
+                      loadingMessage.remove()
+                        if(jobs.length === 0){
+                           // Display no results message
+                           const noResultsMessage = document.createElement("p");
+                           noResultsMessage.textContent = "No jobs found matching your criteria";
+                           mainElement.appendChild(noResultsMessage);
+                           return;
+                         }
+
+                      // Create div to hold the results
+                         const resultsDiv = document.createElement("div");
+                         resultsDiv.id="job-results"
+
+                        jobs.forEach(job => {
+                            const jobDiv = document.createElement("div");
+                            jobDiv.classList.add("job-item");
+                            jobDiv.innerHTML = `
+                                <h3>${job.job_title}</h3>
+                                <p><strong>Company:</strong> ${job.company_name}</p>
+                                <p><strong>Location:</strong> ${job.location}</p>
+                                <p><strong>Description:</strong> ${job.description}</p>
+                                <p><strong>Date:</strong> ${job.date}</p>
+                                <a href="${job.link}" target="_blank">View Job</a>
+                            `;
+                            resultsDiv.appendChild(jobDiv);
+                        });
+
+                       mainElement.appendChild(resultsDiv);
+
+                    } catch (error) {
+                        console.error("Error fetching jobs:", error);
+                        const errorMsg = document.createElement("p");
+                        errorMsg.textContent = "Failed to fetch jobs. Please try again later.";
+                        mainElement.appendChild(errorMsg);
+                    }
+
+                } else {
+                    alert("Veuillez entrer un mot-clé pour rechercher un emploi.");
+                }
+            });
+        });
+    </script>
+    
+</body>
+</html>
